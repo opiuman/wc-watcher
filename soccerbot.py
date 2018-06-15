@@ -141,19 +141,19 @@ def build_event(player_list, current_match, event):
         event_message = ':yellow_card_new: :red_card_new: {} Second yellow card.'.format(event['time'])
         extraInfo = True
     elif event['type'] == EventType.SUBSTITUTION.value:
-        event_message = ':arrows_counterclockwise: {} Substitution for {}.'.format(event['time'], active_team)
+        event_message = ':arrows_counterclockwise: {} Substitution for *{}*.'.format(event['time'], active_team)
         if player and sub_player:
             event_message += '\n> `In`: {} \n> `Out`: {}.'.format(player, sub_player)
     elif event['type'] == EventType.MATCH_START.value:
         period = None
         if event['period'] == Period.FIRST_PERIOD.value:
-            event_message = ':clock12: The match between {} and {} has begun!'.format(current_match['homeTeam'], current_match['awayTeam'])
+            event_message = ':clock12: The match between *{}* and *{}* has begun!'.format(current_match['homeTeam'], current_match['awayTeam'])
         elif event['period'] == Period.SECOND_PERIOD.value:
-            event_message = ':clock12: The second half of the match between {} and {} has begun!'.format(current_match['homeTeam'], current_match['awayTeam'])
+            event_message = ':clock12: The second half of the match between *{}* and *{}* has begun!'.format(current_match['homeTeam'], current_match['awayTeam'])
         elif event['period'] == Period.PENALTY_SHOOTOUT.value:
-            event_message = ':clock12: The penalty shootout is starting between {} and {}!'.format(current_match['homeTeam'], current_match['awayTeam'])
+            event_message = ':clock12: The penalty shootout is starting between *{}* and *{}*!'.format(current_match['homeTeam'], current_match['awayTeam'])
         else:
-            event_message = ':clock12: The match between {} and {} is starting again!'.format(current_match['homeTeam'], current_match['awayTeam'])
+            event_message = ':clock12: The match between *{}* and *{}* is starting again!'.format(current_match['homeTeam'], current_match['awayTeam'])
     elif event['type'] == EventType.HALF_END.value:
         period = None
         if event['period'] == Period.FIRST_PERIOD.value:
