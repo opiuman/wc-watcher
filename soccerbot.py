@@ -17,6 +17,7 @@ TEAM_URL = ''
 
 class EventType(Enum):
     GOAL_SCORED = 0
+    UNKNOWN_11 = 1
     YELLOW_CARD = 2
     RED_CARD = 3
     DOUBLE_YELLOW = 4
@@ -26,20 +27,29 @@ class EventType(Enum):
     HALF_END = 8
     BLOCKED_SHOT = 12
     FOUL_UNKNOWN = 14
+    UNKNOWN_10 = 13
     OFFSIDE = 15
     CORNER_KICK = 16
     BLOCKED_SHOT_2 = 17
     FOUL = 18
+    UNKNOWN_7 = 19
+    UNKNOWN_5 = 20
     UNKNOWN_3 = 22
     UNKNOWN_2 = 23
     UNKNOWN_4 = 24
     MATCH_END = 26
+    UNKNOWN_8 = 27
+    UNKNOWN_9 = 30
     CROSSBAR = 32
     CROSSBAR_2 = 33
     OWN_GOAL = 34
+    HAND_BALL = 37
     FREE_KICK_GOAL = 39
     PENALTY_GOAL = 41
+    UNKNOWN_12 = 51
     PENALTY_MISSED = 60
+    UNKNOWN_6 = 71
+    VAR_PENALTY = 72
     UNKNOWN = 9999
 
     @classmethod
@@ -122,6 +132,7 @@ def get_match_events(idCompetition, idSeason, idStage, idMatch):
     return events
 
 def build_event(player_list, current_match, event):
+    is_debug = False
     event_message = ''
     player = player_list.get(event['player'])
     sub_player = player_list.get(event['sub'])
@@ -143,7 +154,7 @@ def build_event(player_list, current_match, event):
     elif event['type'] == EventType.SUBSTITUTION.value:
         event_message = ':arrows_counterclockwise: {} Substitution for *{}*.'.format(event['time'], active_team)
         if player and sub_player:
-            event_message += '\n> `In`: {} \n> `Out`: {}.'.format(player, sub_player)
+            event_message += '\n> `IN`: {}, `OUT`: {}.'.format(player, sub_player)
     elif event['type'] == EventType.MATCH_START.value:
         period = None
         if event['period'] == Period.FIRST_PERIOD.value:
@@ -175,7 +186,7 @@ def build_event(player_list, current_match, event):
         extraInfo = True
     elif event['type'] == EventType.PENALTY_GOAL.value:
         if event['period'] == Period.PENALTY_SHOOTOUT.value:
-            event_message = ':soccer: Penalty goal! {} *{} ({}):{} (){}* {}'.format(current_match['homeTeam'], event['home_goal'], event['home_pgoals'], event['away_goal'], event['away_pgoals'], current_match['awayTeam'])
+            event_message = ':soccer: Penalty goal! {} *{} ({}):{} ({})* {}'.format(current_match['homeTeam'], event['home_goal'], event['home_pgoals'], event['away_goal'], event['away_pgoals'], current_match['awayTeam'])
         else:
             event_message = ':soccer: {} Penalty goal! {} *{}:{}* {}'.format(event['time'], current_match['homeTeam'], event['home_goal'], event['away_goal'], current_match['awayTeam'])
         extraInfo = True
@@ -189,6 +200,7 @@ def build_event(player_list, current_match, event):
         event_message = None
     elif private.DEBUG:
         event_message = 'Missing event information for {} vs {}: Event {}\n{}'.format(current_match['homeTeam'], current_match['awayTeam'], event['type'], event['url'])
+        is_debug = True
     else:
         event_message = None
 
@@ -198,7 +210,11 @@ def build_event(player_list, current_match, event):
         elif active_team:
             event_message += '\n> {}'.format(active_team)
 
-    return event_message
+    if event_message:
+        print('Sending event: {}'.format(event_message))
+        return {'message': event_message, 'debug': is_debug}
+    else:
+        return None
 
 def save_matches(match_list):
     with open('match_list.txt', 'w') as file:
@@ -245,9 +261,20 @@ def check_for_updates():
     save_matches(match_list)
     return events
 
-def send_event(event, url=private.WEBHOOK_URL):
+def send_event(event, url=private.WEBHOOK_URL, channel=''):
     headers = {'Content-Type': 'application/json'}
-    payload = {'text': event}
+    payload = { 'text': event }
+    
+    if channel is not '':
+       payload['channel'] = channel
+    elif hasattr(private, 'CHANNEL') and private.CHANNEL is not '':
+       payload['channel'] = private.CHANNEL
+
+    if hasattr(private, 'BOT_NAME') and private.BOT_NAME is not '':
+       payload['username'] = private.BOT_NAME
+    if  hasattr(private, 'ICON_EMOJI') and private.ICON_EMOJI is not '':
+       payload['icon_emoji'] = private.ICON_EMOJI
+      
     try:
         r = requests.post(url, data=json.dumps(payload), headers=headers)
         r.raise_for_status()
@@ -260,19 +287,22 @@ def send_event(event, url=private.WEBHOOK_URL):
 
 def heart_beat():
     count = 0
-    send_event('Coming up', url=private.DEBUG_WEBHOOK)
+    send_event('Coming up', url=private.DEBUG_WEBHOOK, channel=private.DEBUG_CHANNEL)
     while True:
         count = count + 1
         if count >= 60:
             count = 0
-            send_event('Health ping', url=private.DEBUG_WEBHOOK)
+            send_event('Health ping', url=private.DEBUG_WEBHOOK, channel=private.DEBUG_CHANNEL)
         time.sleep(60)
 
 def main():
     while True:
         events = check_for_updates()
         for event in events:
-            send_event(event)
+            url = private.WEBHOOK_URL
+            if event['debug'] == True and private.DEBUG and private.DEBUG_WEBHOOK is not '':
+                url = private.DEBUG_WEBHOOK
+            send_event(event['message'], url)
         time.sleep(60)
 
 if __name__ == '__main__':

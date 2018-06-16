@@ -2,4 +2,4 @@ version: "2"
 services:
   app:
     image: opiuman/wc
-    container_name: wc-watcher
+    container_name: wc
