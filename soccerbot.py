@@ -135,7 +135,7 @@ def build_event(player_list, current_match, event):
     is_debug = False
     event_message = ''
     player = player_list.get(event['player'])
-    sub_player = player_list.get(event['sub'])
+    # sub_player = player_list.get(event['sub'])
     active_team = current_match['homeTeam'] if event['team'] == current_match['homeTeamId'] else current_match['awayTeam']
     extraInfo = False
     if (event['type'] == EventType.GOAL_SCORED.value or event['type'] == EventType.FREE_KICK_GOAL.value
@@ -151,10 +151,10 @@ def build_event(player_list, current_match, event):
     elif event['type'] == EventType.DOUBLE_YELLOW.value:
         event_message = ':yellow_card_new: :red_card_new: {} Second yellow card.'.format(event['time'])
         extraInfo = True
-    elif event['type'] == EventType.SUBSTITUTION.value:
-        event_message = ':arrows_counterclockwise: {} Substitution for *{}*.'.format(event['time'], active_team)
-        if player and sub_player:
-            event_message += '\n> `IN`: {}, `OUT`: {}.'.format(player, sub_player)
+    # elif event['type'] == EventType.SUBSTITUTION.value:
+    #     event_message = ':arrows_counterclockwise: {} Substitution for *{}*.'.format(event['time'], active_team)
+    #     if player and sub_player:
+    #         event_message += '\n> `IN`: {}, `OUT`: {}.'.format(player, sub_player)
     elif event['type'] == EventType.MATCH_START.value:
         period = None
         if event['period'] == Period.FIRST_PERIOD.value:
