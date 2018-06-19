@@ -303,7 +303,7 @@ def main():
             if event['debug'] == True and private.DEBUG and private.DEBUG_WEBHOOK is not '':
                 url = private.DEBUG_WEBHOOK
             send_event(event['message'], url)
-        time.sleep(60)
+        time.sleep(20)
 
 if __name__ == '__main__':
     executor = ProcessPoolExecutor(2)
